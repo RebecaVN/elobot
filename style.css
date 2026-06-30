@@ -1,0 +1,156 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #f7f7f7;
+  font-family: 'Courier New', monospace;
+}
+
+.chat-container {
+  width: 98%;
+  height: 95vh;
+  margin: 2vh auto;
+  background: white;
+  border: 1.5px solid #b54ac4;
+  border-radius: 28px;
+  display: flex;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 75px;
+  background: #d9a7df;
+  display: flex;
+  justify-content: center;
+}
+
+.side-logo {
+  margin-top: 25px;
+  text-align: center;
+}
+
+.side-logo img {
+  width: 105px;
+  margin-left: 30px;
+}
+
+.side-logo h2 {
+  font-size: 14px;
+  margin-left: 30px;
+  margin-top: 10px;
+}
+
+.hidden {
+  display: none;
+}
+
+.chat-area {
+  flex: 1;
+  position: relative;
+  padding: 30px 70px 110px;
+}
+
+.home-screen {
+  height: 80%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.main-logo {
+  width: 230px;
+}
+
+.home-screen h1 {
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.messages {
+  display: none;
+  height: 100%;
+  overflow-y: auto;
+  padding: 20px 0;
+}
+
+.message {
+  max-width: 52%;
+  background: #d9a7df;
+  padding: 22px 35px;
+  border-radius: 28px;
+  margin-bottom: 32px;
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.bot {
+  margin-right: auto;
+}
+
+.user {
+  margin-left: auto;
+}
+
+.input-area {
+  position: absolute;
+  bottom: 34px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 45%;
+  height: 50px;
+  background: #d9a7df;
+  border-radius: 28px;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+}
+
+.input-area input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  color: #111;
+  padding-left: 10px;
+}
+
+.input-area input::placeholder {
+  color: #111;
+}
+
+.icon-btn {
+  border: none;
+  background: transparent;
+  font-size: 24px;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+@media (max-width: 768px) {
+  .chat-area {
+    padding: 20px 25px 100px;
+  }
+
+  .input-area {
+    width: 75%;
+  }
+
+  .message {
+    max-width: 85%;
+  }
+
+  .sidebar {
+    width: 55px;
+  }
+
+  .side-logo img {
+    width: 75px;
+  }
+}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ELOBOT</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <main class="chat-container">
+
+    <aside class="sidebar">
+      <div class="side-logo hidden" id="sideLogo">
+        <img src="prog.svg" alt="Logo ELOBOT">
+        <h2>ELOBOT</h2>
+      </div>
+    </aside>
+
+    <section class="chat-area">
+
+      <div class="home-screen" id="homeScreen">
+        <img src="prog.svg" alt="Logo ELOBOT" class="main-logo">
+        <h1>ELOBOT</h1>
+      </div>
+
+      <div class="messages" id="messages"></div>
+
+      <form class="input-area" id="chatForm">
+        <input 
+          type="text" 
+          id="userInput" 
+          placeholder="COMECE NOSSA CONVERSA AQUI..."
+          autocomplete="off"
+        />
+
+        <button type="button" class="icon-btn">🎙</button>
+        <button type="submit" class="icon-btn">➤</button>
+      </form>
+
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
