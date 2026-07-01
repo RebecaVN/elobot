@@ -32,27 +32,27 @@ O arquivo keys.json está listado no .gitignore para proteger credenciais e evit
 Cada pessoa que utilizar o projeto deverá criar seu próprio arquivo com suas credenciais.
 
 # Exemplo de estrutura: <br>
-
-{ <br>
-  "azure": { <br>
-    "endpoint": "SEU_ENDPOINT", <br>
-    "apiKey": "SUA_CHAVE_OPENAI", <br>
-    "model": "SEU_MODELO" <br>
+```
+{
+  "azure": { 
+    "endpoint": "SEU_ENDPOINT", 
+    "apiKey": "SUA_CHAVE_OPENAI",
+    "model": "SEU_MODELO"
   }, <br>
-  "speech": { <br>
-    "key": "SUA_CHAVE_SPEECH", <br>
-    "region": "SUA_REGIAO" <br>
-  }, <br>
-  "request": { <br>
-    "maxCompletionTokens": 4096, <br>
-    "reasoningEffort": "medium" <br>
-  }, <br>
-  "bot": { <br>
-    "name": "ELOBOT", <br>
-    "systemMessage": "Você é o ELOBOT, um chatbot amigável, simples e objetivo." <br>
-  } <br>
-} <br>
-
+  "speech": { 
+    "key": "SUA_CHAVE_SPEECH",
+    "region": "SUA_REGIAO"
+  }, 
+  "request": {
+    "maxCompletionTokens": 4096,
+    "reasoningEffort": "medium"
+  }, 
+  "bot": {
+    "name": "ELOBOT", 
+    "systemMessage": "Você é o ELOBOT, um chatbot amigável, simples e objetivo."
+  } 
+} 
+```
  # Licença
 As chaves de acesso da Azure não devem ser compartilhadas.
 <br>
