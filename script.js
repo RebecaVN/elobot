@@ -205,9 +205,7 @@ async function askAzure(userText) {
   }
 
 }
-// ==========================
-// RECONHECIMENTO DE VOZ
-// ==========================
+
 
 const SpeechRecognition =
     window.SpeechRecognition ||
@@ -305,9 +303,6 @@ recognition && (recognition.onend = () => {
 
 });
 
-// ==========================
-// AZURE TEXT TO SPEECH
-// ==========================
 
 async function speak(text) {
 
