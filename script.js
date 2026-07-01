@@ -10,261 +10,399 @@ let started = false;
 let voiceEnabled = true;
 
 let CONFIG = {};
+let history = [];
 
 fetch("keys.json")
   .then(response => response.json())
   .then(data => {
+
     CONFIG = data;
+
+    history = [
+      {
+        role: "system",
+        content: CONFIG.bot.systemMessage
+      }
+    ];
+
   })
   .catch(error => {
+
     console.error("Erro ao carregar keys.json", error);
+
   });
 
-form.addEventListener("submit", function(event) {
+form.addEventListener("submit", function (event) {
+
   event.preventDefault();
 
   const text = input.value.trim();
 
-  if (text === "") {
-    return;
-  }
+  if (!text) return;
 
-  if (started === false) {
+  if (!started) {
     startChat();
   }
 
   addMessage(text, "user");
+
   input.value = "";
 
   askAzure(text);
-});
 
-micButton.addEventListener("click", function () {
-  startRecognition();
 });
 
 function startChat() {
+
   homeScreen.style.display = "none";
+
   messages.style.display = "block";
+
   sideLogo.classList.remove("hidden");
+
   input.placeholder = "PERGUNTE QUALQUER COISA...";
+
   started = true;
+
 }
 
 function addMessage(text, type) {
 
-    const div = document.createElement("div");
-    div.className = "message " + type;
+  const div = document.createElement("div");
 
-    const span = document.createElement("span");
-    span.innerText = text;
+  div.className = "message " + type;
 
-    div.appendChild(span);
+  const span = document.createElement("span");
 
-    if (type === "bot") {
+  span.textContent = text;
 
-        const speakBtn = document.createElement("button");
+  div.appendChild(span);
 
-        speakBtn.className = "speak-btn";
+  if (type === "bot") {
 
-        speakBtn.innerHTML = "🔊";
+    const speakBtn = document.createElement("button");
 
-        speakBtn.title = "Ouvir resposta";
+    speakBtn.className = "speak-btn";
 
-        speakBtn.onclick = () => speak(text);
+    speakBtn.innerHTML = "🔊";
 
-        div.appendChild(speakBtn);
+    speakBtn.title = "Ouvir resposta";
 
-    }
+    speakBtn.addEventListener("click", () => {
 
-    messages.appendChild(div);
+      speak(text);
 
-    messages.scrollTop = messages.scrollHeight;
+    });
+
+    div.appendChild(speakBtn);
+
+  }
+
+  messages.appendChild(div);
+
+  messages.scrollTop = messages.scrollHeight;
 
 }
 
-function askAzure(userText) {
+function showTyping() {
 
-  addMessage("Digitando...", "bot");
+  const div = document.createElement("div");
 
-  fetch(CONFIG.azure.endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + CONFIG.azure.apiKey
-    },
-    body: JSON.stringify({
-      model: CONFIG.azure.model,
-      messages: [
-        {
-          role: "system",
-          content: CONFIG.bot.systemMessage
-        },
-        {
-          role: "user",
-          content: userText
-        }
-      ],
-      max_completion_tokens: CONFIG.request.maxCompletionTokens,
-      reasoning_effort: CONFIG.request.reasoningEffort
-    })
-  })
-  .then(response => {
+  div.className = "message bot typing";
+
+  div.id = "typing";
+
+  div.innerHTML = "<span>Digitando...</span>";
+
+  messages.appendChild(div);
+
+  messages.scrollTop = messages.scrollHeight;
+
+}
+
+function removeTyping() {
+
+  const typing = document.getElementById("typing");
+
+  if (typing) {
+
+    typing.remove();
+
+  }
+
+}
+
+async function askAzure(userText) {
+
+  history.push({
+    role: "user",
+    content: userText
+  });
+
+  showTyping();
+
+  try {
+
+    const response = await fetch(CONFIG.azure.endpoint, {
+
+      method: "POST",
+
+      headers: {
+
+        "Content-Type": "application/json",
+
+        "Authorization": "Bearer " + CONFIG.azure.apiKey
+
+      },
+
+      body: JSON.stringify({
+
+        model: CONFIG.azure.model,
+
+        messages: history,
+
+        max_completion_tokens: CONFIG.request.maxCompletionTokens,
+
+        reasoning_effort: CONFIG.request.reasoningEffort
+
+      })
+
+    });
 
     if (!response.ok) {
-      throw new Error("Erro HTTP: " + response.status);
+
+      throw new Error(await response.text());
+
     }
 
-    return response.json();
+    const data = await response.json();
 
-  })
-  .then(data => {
+    removeTyping();
 
-    messages.lastChild.remove();
+    const answer =
+      data.choices?.[0]?.message?.content ||
+      "Não consegui gerar uma resposta.";
 
-    const resposta = data.choices[0].message.content;
+    history.push({
 
-    addMessage(resposta, "bot");
+      role: "assistant",
 
-  })
-  .catch(error => {
+      content: answer
 
-    messages.lastChild.remove();
+    });
+
+    addMessage(answer, "bot");
+
+  }
+  catch (error) {
+
+    removeTyping();
 
     addMessage("Erro ao conectar com a IA.", "bot");
 
     console.error(error);
 
-  });
+  }
+
+}
+// ==========================
+// RECONHECIMENTO DE VOZ
+// ==========================
+
+const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+let recognition = null;
+
+if (SpeechRecognition) {
+
+    recognition = new SpeechRecognition();
+
+    recognition.lang = "pt-BR";
+
+    recognition.continuous = false;
+
+    recognition.interimResults = false;
+
+    recognition.maxAlternatives = 1;
 
 }
 
+micButton.addEventListener("click", () => {
+
+    startRecognition();
+
+});
 
 function startRecognition() {
 
-  if (!CONFIG.speech) {
-    alert("Speech não configurado no keys.json");
-    return;
-  }
+    if (!recognition) {
 
-  const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(
-    CONFIG.speech.key,
-    CONFIG.speech.region
-  );
+        alert("Seu navegador não suporta reconhecimento de voz.");
 
-  speechConfig.speechRecognitionLanguage = "pt-BR";
+        return;
 
-  const audioConfig =
-    SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+    }
 
-  const recognizer =
-    new SpeechSDK.SpeechRecognizer(
-      speechConfig,
-      audioConfig
-    );
+    micButton.disabled = true;
 
-  micButton.disabled = true;
+    recognition.start();
 
-  recognizer.recognizeOnceAsync(
+}
 
-    function(result) {
+recognition && (recognition.onstart = () => {
 
-      micButton.disabled = false;
+    console.log("🎤 Ouvindo...");
 
-      if (
-        result.reason ===
-        SpeechSDK.ResultReason.RecognizedSpeech
-      ) {
+});
 
-        const texto = result.text.trim();
+recognition && (recognition.onresult = (event) => {
 
-        if (texto !== "") {
+    micButton.disabled = false;
 
-          input.value = texto;
+    const texto = event.results[0][0].transcript.trim();
 
-          // Envia automaticamente
-          form.requestSubmit();
+    if (!texto)
+        return;
+
+    input.value = texto;
+
+    form.requestSubmit();
+
+});
+
+recognition && (recognition.onerror = (event) => {
+
+    micButton.disabled = false;
+
+    console.error(event.error);
+
+    switch (event.error) {
+
+        case "not-allowed":
+            alert("Permita o uso do microfone.");
+            break;
+
+        case "no-speech":
+            console.log("Nenhuma fala detectada.");
+            break;
+
+        case "audio-capture":
+            alert("Nenhum microfone encontrado.");
+            break;
+
+        default:
+            console.log(event.error);
+
+    }
+
+});
+
+recognition && (recognition.onend = () => {
+
+    micButton.disabled = false;
+
+});
+
+// ==========================
+// AZURE TEXT TO SPEECH
+// ==========================
+
+async function speak(text) {
+
+    if (!voiceEnabled)
+        return;
+
+    if (!CONFIG.speech)
+        return;
+
+    try {
+
+        const ssml =
+`<speak version="1.0"
+xml:lang="pt-BR">
+
+<voice name="${CONFIG.speech.voiceName}">
+
+${escapeXml(text)}
+
+</voice>
+
+</speak>`;
+
+        const response = await fetch(
+
+            `https://${CONFIG.speech.region}.tts.speech.microsoft.com/cognitiveservices/v1`,
+
+            {
+
+                method: "POST",
+
+                headers: {
+
+                    "Ocp-Apim-Subscription-Key": CONFIG.speech.key,
+
+                    "Content-Type": "application/ssml+xml",
+
+                    "X-Microsoft-OutputFormat":
+                        "audio-24khz-48kbitrate-mono-mp3"
+
+                },
+
+                body: ssml
+
+            }
+
+        );
+
+        if (!response.ok) {
+
+            throw new Error(await response.text());
 
         }
 
-      }
-      else {
+        const blob = await response.blob();
 
-        console.log("Nenhuma fala reconhecida.");
+        const url = URL.createObjectURL(blob);
 
-      }
+        const audio = new Audio(url);
 
-      recognizer.close();
+        audio.play();
 
-    },
+        audio.onended = () => {
 
-    function(err) {
+            URL.revokeObjectURL(url);
 
-      micButton.disabled = false;
-
-      console.error(err);
-
-      recognizer.close();
+        };
 
     }
 
-  );
+    catch (error) {
 
-}
-
-
-
-function speak(text) {
-
-  if (!CONFIG.speech || !voiceEnabled)
-    return;
-
-  const speechConfig =
-    SpeechSDK.SpeechConfig.fromSubscription(
-      CONFIG.speech.key,
-      CONFIG.speech.region
-    );
-
-  speechConfig.speechSynthesisLanguage = "pt-BR";
-
-  speechConfig.speechSynthesisVoiceName =
-    "pt-BR-FranciscaNeural";
-
-  const synthesizer =
-    new SpeechSDK.SpeechSynthesizer(
-      speechConfig
-    );
-
-  synthesizer.speakTextAsync(
-
-    text,
-
-    function(result) {
-
-      synthesizer.close();
-
-    },
-
-    function(err) {
-
-      console.error(err);
-
-      synthesizer.close();
+        console.error(error);
 
     }
 
-  );
-
 }
-
 
 function toggleVoice() {
 
-  voiceEnabled = !voiceEnabled;
+    voiceEnabled = !voiceEnabled;
 
-  console.log(
-    "Resposta por voz:",
-    voiceEnabled ? "Ligada" : "Desligada"
-  );
+    console.log(
+        "Resposta por voz:",
+        voiceEnabled ? "Ligada" : "Desligada"
+    );
+
+}
+function escapeXml(text) {
+
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
 
 }
